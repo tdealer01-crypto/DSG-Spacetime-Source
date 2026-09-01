@@ -1,12 +1,12 @@
-# NOTICE — Public Source Candidate
+# NOTICE — Public Source
 
-Status: **PREPARED — NOT YET PUBLISHED**
+Status: **PUBLISHED**
 
 DSG Spacetime is owned and maintained by its rights holder.
 
-This candidate staging tree is being prepared for intentional public source visibility. It is not the private commercial operations repository and does not contain seller private signing material, customer transaction records, private fulfillment workflows, or commercial runtime release assets.
+This clean-history repository is intentionally public and contains only the source-visible implementation and tests approved for this publication boundary. It is not the private commercial operations repository and does not contain seller private signing material, customer transaction records, private fulfillment workflows, or commercial runtime release assets.
 
-The selected source-visible terms are **Proprietary / all rights reserved** under the included `DSG SPACETIME PROPRIETARY SOURCE-VISIBLE LICENSE`.
+The source-visible terms are **Proprietary / all rights reserved** under the included `DSG SPACETIME PROPRIETARY SOURCE-VISIBLE LICENSE`.
 
 Public visibility permits inspection only as stated in that license. It is not an open-source grant and does not authorize general use, modification, redistribution, sublicensing, commercialization, or derivative works.
 

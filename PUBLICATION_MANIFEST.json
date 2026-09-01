@@ -1,13 +1,15 @@
 {
   "schema_version": 1,
-  "classification": "PUBLIC SOURCE CANDIDATE",
-  "status": "PREPARED",
-  "publication_allowed": false,
+  "classification": "PUBLIC SOURCE",
+  "status": "PUBLISHED",
+  "publication_allowed": true,
   "source_snapshot": "e8b27cad7136ac65bd6916f27cc3a6e65786ab36",
   "license_selected": true,
   "license_id": "LicenseRef-DSG-Proprietary-Source-Visible-ARR-1.0",
   "license_model": "proprietary source-visible; all rights reserved",
-  "public_repository_created": false,
+  "public_repository_created": true,
+  "public_repository": "tdealer01-crypto/DSG-Spacetime-Source",
+  "clean_history": true,
   "source_semantics": "inspectable source implementation; not proven technically equivalent to the seller-trust-root-locked commercial binary",
   "required_files": [
     ".github/workflows/ci.yml",
@@ -44,11 +46,5 @@
     "scripts/smoke_packaged_console.py",
     "tests/test_fulfillment.py"
   ],
-  "gates_remaining": [
-    "durable IP/public-disclosure policy is explicitly superseded for this exact source-public candidate",
-    "new empty clean-history public repository exists",
-    "candidate is transferred without private Git history",
-    "public repository CI succeeds on exact candidate head",
-    "post-publication provider/repository state is reverified"
-  ]
+  "gates_remaining": []
 }
