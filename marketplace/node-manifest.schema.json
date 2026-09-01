@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsg.pics/schemas/spacetime-node-manifest-1.0.json",
+  "title": "DSG Spacetime Marketplace Node Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "node_id",
+    "publisher",
+    "display_name",
+    "capabilities",
+    "adapter_contract",
+    "required_permissions",
+    "risk_ceiling",
+    "license_sku"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "node_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$"},
+    "publisher": {"type": "string", "minLength": 1, "maxLength": 128},
+    "display_name": {"type": "string", "minLength": 1, "maxLength": 128},
+    "description": {"type": "string", "maxLength": 1000},
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{1,127}$"}
+    },
+    "adapter_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol", "version"],
+      "properties": {
+        "protocol": {"enum": ["python-sdk", "mcp", "http", "customer-adapter"]},
+        "version": {"type": "string", "minLength": 1, "maxLength": 32}
+      }
+    },
+    "required_permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "maxLength": 128}
+    },
+    "risk_ceiling": {"enum": ["low", "medium", "high", "critical"]},
+    "license_sku": {"type": "string", "minLength": 1, "maxLength": 128},
+    "public_docs": {"type": "string", "format": "uri"},
+    "proof_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["decision-hash", "evidence-chain", "external-proof", "replay"]}
+    }
+  }
+}
