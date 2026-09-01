@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -26,7 +28,29 @@ jobs:
       - name: Test public-source runtime
         run: pytest -q
 
-      - name: Reject private operational paths
+      - name: Validate publication manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("PUBLICATION_MANIFEST.json").read_text())
+          assert manifest["classification"] == "PUBLIC SOURCE"
+          assert manifest["status"] == "PUBLISHED"
+          assert manifest["publication_allowed"] is True
+          assert manifest["clean_history"] is True
+          assert manifest["gates_remaining"] == []
+
+          missing = [p for p in manifest["required_files"] if not Path(p).is_file()]
+          present_forbidden = [p for p in manifest["forbidden_private_ops"] if Path(p).exists()]
+          assert not missing, f"missing required publication files: {missing}"
+          assert not present_forbidden, f"forbidden private paths present: {present_forbidden}"
+          print("Publication manifest/current-tree gate: PASS")
+          PY
+
+      - name: Reject private operational paths in current tree
         shell: bash
         run: |
           set -euo pipefail
@@ -47,12 +71,39 @@ jobs:
             fi
           done
 
-      - name: Reject obvious credential and transaction material
+      - name: Reject private operational paths across complete history
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -nE 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_(live|test)_[A-Za-z0-9_-]{8,}|github_pat_[A-Za-z0-9_]+|ghp_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|cs_live_[A-Za-z0-9_]+|plink_[A-Za-z0-9_]+' -- .; then
+          forbidden_re='(^|/)(fulfill_stripe_orders\.py|test_fulfillment\.py|generate_commercial_signing_key\.py|prepare_trust_root\.py|smoke_packaged_console\.py|package-private-release\.yml|publish-commercial-release\.yml|fulfill-stripe-orders\.yml)$'
+          for rev in $(git rev-list --all); do
+            if git ls-tree -r --name-only "$rev" | grep -E "$forbidden_re"; then
+              echo "BLOCK: private operational path found in git history at $rev"
+              exit 1
+            fi
+          done
+          echo "Complete-history private-path gate: PASS"
+
+      - name: Reject obvious credential and transaction material in current tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_(live|test)_[A-Za-z0-9_-]{8,}|github_pat_[A-Za-z0-9_]+|ghp_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|cs_live_[A-Za-z0-9_]+|plink_[A-Za-z0-9_]+'
+          if git grep -nE "$pattern" -- .; then
             echo "BLOCK: possible private credential or transaction material"
             exit 1
           fi
-          echo "Public-source secret/transaction guard: PASS"
+          echo "Public-source secret/transaction current-tree guard: PASS"
+
+      - name: Reject obvious credential and transaction material across complete history
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_(live|test)_[A-Za-z0-9_-]{8,}|github_pat_[A-Za-z0-9_]+|ghp_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|cs_live_[A-Za-z0-9_]+|plink_[A-Za-z0-9_]+'
+          for rev in $(git rev-list --all); do
+            if git grep -I -n -E "$pattern" "$rev" -- .; then
+              echo "BLOCK: possible private credential or transaction material in git history at $rev"
+              exit 1
+            fi
+          done
+          echo "Complete-history secret/transaction gate: PASS"
