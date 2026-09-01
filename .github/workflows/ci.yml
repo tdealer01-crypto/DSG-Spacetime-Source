@@ -1,0 +1,58 @@
+name: DSG Spacetime Public Source CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-public-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: python -m pip install -e '.[dev]'
+
+      - name: Compile
+        run: python -m compileall -q src
+
+      - name: Test public-source runtime
+        run: pytest -q
+
+      - name: Reject private operational paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=(
+            "scripts/fulfill_stripe_orders.py"
+            "tests/test_fulfillment.py"
+            "scripts/generate_commercial_signing_key.py"
+            "scripts/prepare_trust_root.py"
+            "scripts/smoke_packaged_console.py"
+            ".github/workflows/package-private-release.yml"
+            ".github/workflows/publish-commercial-release.yml"
+            ".github/workflows/fulfill-stripe-orders.yml"
+          )
+          for path in "${forbidden[@]}"; do
+            if [ -e "$path" ]; then
+              echo "BLOCK: private operational path present: $path"
+              exit 1
+            fi
+          done
+
+      - name: Reject obvious credential and transaction material
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nE 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_(live|test)_[A-Za-z0-9_-]{8,}|github_pat_[A-Za-z0-9_]+|ghp_[A-Za-z0-9]+|whsec_[A-Za-z0-9]+|cs_live_[A-Za-z0-9_]+|plink_[A-Za-z0-9_]+' -- .; then
+            echo "BLOCK: possible private credential or transaction material"
+            exit 1
+          fi
+          echo "Public-source secret/transaction guard: PASS"
