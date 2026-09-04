@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .console import serve_console
 from .licensing import generate_signing_key, issue_entitlement
+from .mcp_http import DEFAULT_API_KEY_ENV, serve_http
 from .mcp_stdio import serve_stdio
 
 
@@ -95,6 +96,22 @@ def main() -> int:
     serve = sub.add_parser("serve-mcp")
     _add_runtime_paths(serve)
 
+    http = sub.add_parser("serve-mcp-http")
+    _add_runtime_paths(http)
+    http.add_argument("--host", default="127.0.0.1")
+    http.add_argument("--port", type=int, default=8787)
+    http.add_argument(
+        "--api-key-env",
+        default=DEFAULT_API_KEY_ENV,
+        help="environment variable containing the Bearer key; required for non-loopback binds",
+    )
+    http.add_argument(
+        "--allow-origin",
+        action="append",
+        default=[],
+        help="browser Origin allowed to call /mcp; repeat for multiple exact origins",
+    )
+
     console = sub.add_parser("serve-console")
     _add_runtime_paths(console)
     console.add_argument("--host", default="127.0.0.1")
@@ -112,6 +129,16 @@ def main() -> int:
             config_path=args.config,
             entitlement_path=args.entitlement,
             evidence_path=args.evidence,
+        )
+    if args.command == "serve-mcp-http":
+        return serve_http(
+            config_path=args.config,
+            entitlement_path=args.entitlement,
+            evidence_path=args.evidence,
+            host=args.host,
+            port=args.port,
+            api_key_env=args.api_key_env,
+            allowed_origins=tuple(args.allow_origin),
         )
     if args.command == "serve-console":
         return serve_console(

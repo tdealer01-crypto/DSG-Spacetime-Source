@@ -94,6 +94,59 @@ spacetime_execute
 spacetime_verify_evidence
 ```
 
+### MCP transports
+
+The same governed MCP runtime can be exposed locally over stdio or over HTTP. Both transports use the same entitlement verification, plan binding, Route authorization, approval, adapter execution, and evidence path.
+
+Local stdio:
+
+```bash
+dsg-spacetime serve-mcp \
+  --config deployment.json \
+  --entitlement entitlement.json \
+  --evidence evidence.jsonl
+```
+
+Local MCP HTTP server:
+
+```bash
+dsg-spacetime serve-mcp-http \
+  --config deployment.json \
+  --entitlement entitlement.json \
+  --evidence evidence.jsonl
+```
+
+The HTTP transport exposes:
+
+```text
+POST /mcp     JSON-RPC MCP requests
+GET  /health  transport health and MCP protocol version
+```
+
+The default HTTP bind is `127.0.0.1:8787`. A non-loopback bind fails closed unless a Bearer API key is supplied through an environment variable.
+
+Example remote bind:
+
+```bash
+export DSG_SPACETIME_API_KEY='replace-with-a-random-secret'
+
+dsg-spacetime serve-mcp-http \
+  --config deployment.json \
+  --entitlement entitlement.json \
+  --evidence evidence.jsonl \
+  --host 0.0.0.0 \
+  --port 8787
+```
+
+Clients then send:
+
+```text
+Authorization: Bearer <DSG_SPACETIME_API_KEY>
+Content-Type: application/json
+```
+
+Browser `Origin` headers are rejected unless the exact origin is explicitly added with `--allow-origin`. For internet-facing deployments, terminate TLS at a trusted reverse proxy or managed ingress and keep the Bearer secret in the deployment secret store rather than in source control.
+
 The product objective is simple:
 
 > **Add a governed execution layer to infrastructure you already own, without forcing a platform migration.**
