@@ -28,6 +28,121 @@ jobs:
       - name: Test public-source runtime
         run: pytest -q
 
+      - name: Validate Agent Plugins v1 bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install 'jsonschema==4.23.0' 'PyYAML==6.0.2'
+          curl -fsSL --retry 3 --retry-all-errors \
+            https://agent-plugins.org/schemas/1.0.0/plugin.schema.json \
+            -o "$RUNNER_TEMP/agent-plugin.schema.json"
+          curl -fsSL --retry 3 --retry-all-errors \
+            https://agent-plugins.org/schemas/1.0.0/mcp.schema.json \
+            -o "$RUNNER_TEMP/agent-plugin-mcp.schema.json"
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          import yaml
+          from jsonschema import Draft202012Validator
+
+          root = Path("plugins/dsg-spacetime")
+          tmp = Path(os.environ["RUNNER_TEMP"])
+
+          cases = [
+              (
+                  root / "plugin.json",
+                  tmp / "agent-plugin.schema.json",
+                  "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+              ),
+              (
+                  root / "mcp.json",
+                  tmp / "agent-plugin-mcp.schema.json",
+                  "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+              ),
+          ]
+
+          for document_path, schema_path, expected_schema_id in cases:
+              document = json.loads(document_path.read_text(encoding="utf-8"))
+              schema = json.loads(schema_path.read_text(encoding="utf-8"))
+              assert document.get("$schema") == expected_schema_id, (
+                  f"{document_path}: expected $schema={expected_schema_id!r}, "
+                  f"got {document.get('$schema')!r}"
+              )
+              validator = Draft202012Validator(schema)
+              errors = sorted(validator.iter_errors(document), key=lambda e: list(e.absolute_path))
+              assert not errors, "\\n".join(
+                  f"{document_path}:{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
+                  for e in errors
+              )
+              print(f"Agent Plugins schema PASS: {document_path}")
+
+          mcp = json.loads((root / "mcp.json").read_text(encoding="utf-8"))
+          servers = mcp["mcpServers"]
+          assert servers, "mcp.json: mcpServers must not be empty"
+          for server_name, server in servers.items():
+              if server["type"] in {"streamable-http", "sse"}:
+                  assert server["url"].startswith("https://"), (
+                      f"mcp.json:{server_name}: remote MCP URL must use https://"
+                  )
+
+          allowed_fields = {
+              "name", "description", "license", "compatibility", "metadata", "allowed-tools"
+          }
+          name_re = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+          skills_root = root / "skills"
+          skill_dirs = sorted(p for p in skills_root.iterdir() if p.is_dir())
+          assert skill_dirs, "plugin must contain at least one public skill"
+
+          for skill_dir in skill_dirs:
+              skill_path = skill_dir / "SKILL.md"
+              assert skill_path.is_file(), f"{skill_dir}: missing SKILL.md"
+              text = skill_path.read_text(encoding="utf-8")
+              assert text.startswith("---\\n"), f"{skill_path}: missing YAML frontmatter"
+              parts = text.split("---", 2)
+              assert len(parts) == 3, f"{skill_path}: malformed YAML frontmatter"
+              metadata = yaml.safe_load(parts[1])
+              assert isinstance(metadata, dict), f"{skill_path}: frontmatter must be a mapping"
+
+              extra = set(metadata) - allowed_fields
+              assert not extra, f"{skill_path}: unsupported frontmatter fields: {sorted(extra)}"
+
+              name = metadata.get("name")
+              description = metadata.get("description")
+              assert isinstance(name, str) and 1 <= len(name) <= 64, (
+                  f"{skill_path}: name must be 1-64 characters"
+              )
+              assert name_re.fullmatch(name), (
+                  f"{skill_path}: name must use lowercase letters, digits, and single hyphens"
+              )
+              assert name == skill_dir.name, (
+                  f"{skill_path}: name {name!r} must match directory {skill_dir.name!r}"
+              )
+              assert isinstance(description, str) and 1 <= len(description.strip()) <= 1024, (
+                  f"{skill_path}: description must be non-empty and <= 1024 characters"
+              )
+              if "compatibility" in metadata:
+                  compatibility = metadata["compatibility"]
+                  assert isinstance(compatibility, str) and 1 <= len(compatibility) <= 500, (
+                      f"{skill_path}: compatibility must be 1-500 characters"
+                  )
+              if "metadata" in metadata:
+                  values = metadata["metadata"]
+                  assert isinstance(values, dict), f"{skill_path}: metadata must be a mapping"
+                  assert all(isinstance(k, str) and isinstance(v, str) for k, v in values.items()), (
+                      f"{skill_path}: metadata keys and values must be strings"
+                  )
+              if "allowed-tools" in metadata:
+                  assert isinstance(metadata["allowed-tools"], str), (
+                      f"{skill_path}: allowed-tools must be a string"
+                  )
+              print(f"Agent Skills metadata PASS: {skill_dir.name}")
+
+          print("Agent Plugins v1 bundle gate: PASS")
+          PY
+
       - name: Validate publication manifest
         shell: bash
         run: |
