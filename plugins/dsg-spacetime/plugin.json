@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dsg-spacetime",
+  "version": "0.4.3",
+  "description": "Governed execution with live capability discovery, approval-aware actions, and evidence verification through the DSG Spacetime MCP connector.",
+  "author": {
+    "name": "DSG",
+    "url": "https://dsg.pics"
+  },
+  "homepage": "https://dsg.pics",
+  "repository": "https://github.com/tdealer01-crypto/DSG-Spacetime-Source",
+  "license": "LicenseRef-DSG-Proprietary-Source-Visible-ARR-1.0",
+  "keywords": [
+    "ai-governance",
+    "agent-plugins",
+    "mcp",
+    "governed-execution",
+    "approval",
+    "evidence"
+  ]
+}
