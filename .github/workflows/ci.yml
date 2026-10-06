@@ -73,7 +73,7 @@ jobs:
               )
               validator = Draft202012Validator(schema)
               errors = sorted(validator.iter_errors(document), key=lambda e: list(e.absolute_path))
-              assert not errors, "\\n".join(
+              assert not errors, chr(10).join(
                   f"{document_path}:{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}"
                   for e in errors
               )
@@ -100,10 +100,13 @@ jobs:
               skill_path = skill_dir / "SKILL.md"
               assert skill_path.is_file(), f"{skill_dir}: missing SKILL.md"
               text = skill_path.read_text(encoding="utf-8")
-              assert text.startswith("---\\n"), f"{skill_path}: missing YAML frontmatter"
-              parts = text.split("---", 2)
-              assert len(parts) == 3, f"{skill_path}: malformed YAML frontmatter"
-              metadata = yaml.safe_load(parts[1])
+              lines = text.splitlines()
+              assert lines and lines[0].strip() == "---", f"{skill_path}: missing YAML frontmatter"
+              try:
+                  closing = lines.index("---", 1)
+              except ValueError as exc:
+                  raise AssertionError(f"{skill_path}: malformed YAML frontmatter") from exc
+              metadata = yaml.safe_load(chr(10).join(lines[1:closing]))
               assert isinstance(metadata, dict), f"{skill_path}: frontmatter must be a mapping"
 
               extra = set(metadata) - allowed_fields
