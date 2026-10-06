@@ -1,0 +1,33 @@
+DSG SPACETIME PROPRIETARY SOURCE-VISIBLE LICENSE
+
+Copyright (c) 2026 Thanawat Suparongsuwan / DSG. All rights reserved.
+
+1. OWNERSHIP AND RESERVATION OF RIGHTS
+
+DSG Spacetime, including this source code, associated documentation, designs, interfaces, and related intellectual property, is proprietary. Except for the limited inspection permission stated below, no copyright, patent, trademark, trade-secret, or other intellectual-property license is granted. All rights not expressly granted are reserved by the rights holder.
+
+2. LIMITED INSPECTION PERMISSION
+
+While this source code is intentionally made publicly visible by the rights holder, you may access and inspect it for review and evaluation. Temporary technical copies automatically or reasonably necessary to access and view the source through the hosting service are permitted only for that purpose.
+
+3. NO GENERAL USE OR REDISTRIBUTION LICENSE
+
+Except under a separate written agreement from the rights holder, no permission is granted to use the software in production or a service, copy or reproduce it beyond the limited inspection permission above, modify it, create derivative works, distribute it, sublicense it, publish or republish it elsewhere, sell it, commercialize it, or incorporate it into another product or service.
+
+4. COMMERCIAL LICENSING
+
+Commercial runtime binaries, seller trust-root injection, entitlement signing, packaging, fulfillment, support, and other commercial rights or services are governed separately and are not granted by public visibility of this source repository.
+
+5. TRADEMARKS
+
+No trademark or branding rights are granted. DSG, DSG Spacetime, and associated names, marks, and logos may not be used to imply sponsorship, endorsement, affiliation, or origin without permission.
+
+6. NON-WAIVABLE RIGHTS
+
+Nothing in these terms restricts rights that cannot lawfully be waived or limited under applicable law.
+
+7. NO WARRANTY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOURCE CODE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. THE RIGHTS HOLDER IS NOT LIABLE FOR DAMAGES ARISING FROM ACCESS TO, RELIANCE ON, OR UNAUTHORIZED USE OF THE MATERIAL.
+
+Public availability is not an open-source license and does not place this work in the public domain.
