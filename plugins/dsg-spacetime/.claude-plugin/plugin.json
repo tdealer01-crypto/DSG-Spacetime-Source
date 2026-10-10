@@ -1,0 +1,10 @@
+{
+  "name": "dsg-spacetime",
+  "displayName": "DSG Spacetime",
+  "version": "0.4.3",
+  "description": "Use DSG Spacetime to discover live governed capabilities, prepare approval-aware actions, and verify evidence through the DSG remote MCP connector.",
+  "author": {
+    "name": "DSG",
+    "url": "https://dsg.pics"
+  }
+}
